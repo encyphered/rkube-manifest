@@ -1,0 +1,17 @@
+require 'kube_manifest/core'
+require 'kube_manifest/spec'
+require 'kube_manifest/describe'
+require 'kube_manifest/runner'
+require 'kube_manifest/cli'
+require 'kube_manifest/spec/config'
+require 'kube_manifest/spec/container'
+require 'kube_manifest/spec/core'
+require 'kube_manifest/spec/cronjob'
+require 'kube_manifest/spec/deployment'
+require 'kube_manifest/spec/job'
+require 'kube_manifest/spec/pod'
+require 'kube_manifest/spec/replicaset'
+require 'kube_manifest/spec/service'
+require 'kube_manifest/spec/storage'
+
+KubeManifest::Describer.describe!

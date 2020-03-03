@@ -1,0 +1,5 @@
+.DS_Store
+*.gem
+.idea
+.ruby-version
+Gemfile.lock

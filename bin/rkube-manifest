@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'pathname'
+require 'yaml'
+
+require_relative '../lib/kube_manifest'
+
+cli = KubeManifest::CLI.new.prepare
+cli.run!
