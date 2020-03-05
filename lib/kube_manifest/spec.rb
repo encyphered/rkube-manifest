@@ -18,10 +18,22 @@ module KubeManifest::SpecUtils
         end
       end
 
-      def file(filename)
-        dir = (@_ctx.nil? ? '.' : @_ctx.cwd) || '.'
-        path = File.join(dir, filename)
-        File.open(path).read
+      def file(filename, rstrip: true)
+        dir = []
+        dir.concat(@_ctx.cwd || []) if @_ctx
+        dir << '.'
+
+        dir.each do |d|
+          path = File.join(d, filename)
+          next unless File.exists? path
+          f = File.open(path).read
+          if rstrip
+            return f.rstrip
+          end
+          return f
+        end
+
+        nil
       end
 
       def b64encode(value)

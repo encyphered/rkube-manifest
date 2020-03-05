@@ -76,7 +76,7 @@ class DeploymentDslTest < TestBase
       end
     end
 
-    @definition.cwd = __dir__
+    @definition.cwd << __dir__
     @definition.values = {
         nginx_version: '1.17.0.0',
         fluentd_version: '1.4.2.2',

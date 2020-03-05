@@ -33,7 +33,7 @@ class ContainerDslTest < TestBase
       command ['/bin/sh', '-ce', 'true']
     end
 
-    @definition.cwd = __dir__
+    @definition.cwd << __dir__
     @definition.values = {
         probe: {
             timeoutSeconds: 1,

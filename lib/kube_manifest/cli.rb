@@ -6,6 +6,7 @@ class KubeManifest::CLI
   def initialize
     @options = {}
     @values = {}
+    @cwd = nil
   end
 
   def prepare
@@ -15,15 +16,15 @@ class KubeManifest::CLI
   end
 
   def run!
-    self.class.run!(@filenames, @values)
+    self.class.run!(@filenames, @values, cwd: @cwd)
   end
 
-  def self.run!(filenames, values, mixin: nil)
-    manifests = run(filenames, values, mixin: mixin)
+  def self.run!(filenames, values, mixin: nil, cwd: nil)
+    manifests = run(filenames, values, mixin: mixin, cwd: cwd)
     STDOUT.write manifests.map{|m|m.as_yaml}.join("\n")
   end
 
-  def self.run(filenames, values, mixin: nil)
+  def self.run(filenames, values, mixin: nil, cwd: nil)
     load_mixin!(mixin)
 
     collected = filenames.inject([]) do |result, filename|
@@ -52,12 +53,12 @@ class KubeManifest::CLI
         if manifest.is_a? Array
           manifest.each do |m|
             m.values = values
-            m.cwd = File.dirname(filename)
+            m.cwd = [cwd, File.dirname(filename)]
             result << m
           end
         elsif manifest
           manifest.values = values
-          manifest.cwd = File.dirname(filename)
+          manifest.cwd = [cwd, File.dirname(filename)]
           result << manifest
         end
       end
@@ -89,7 +90,13 @@ class KubeManifest::CLI
 
   def load_values!
     if @options[:values_file]
-      values = YAML.load(File.open(@options[:values_file]).read)
+      if File.directory? @options[:values_file]
+        file = File.open(File.join(@options[:values_file], 'values.yaml'))
+      else
+        file = File.open(@options[:values_file])
+      end
+      @cwd = File.dirname(file)
+      values = YAML.load(file.read)
     else
       values = nil
       %w(values.yml values.yaml).each do |f|

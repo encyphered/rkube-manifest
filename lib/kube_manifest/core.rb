@@ -4,7 +4,7 @@ module KubeManifest
 
     def initialize(klass, args, &blk)
       @klass, @args, @blk = klass, args, blk
-      @cwd, @values = nil, {}
+      @cwd, @values = [], {}
     end
 
     def evaluate(overriding: nil)
