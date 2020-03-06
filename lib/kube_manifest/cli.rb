@@ -16,7 +16,13 @@ class KubeManifest::CLI
   end
 
   def run!
-    self.class.run!(@filenames, @values, cwd: @cwd)
+    mixin = if @options[:method_file] && File.exist?(@options[:method_file])
+              @options[:method_file]
+            else
+              nil
+            end
+
+    self.class.run!(@filenames, @values, cwd: @cwd, mixin: mixin)
   end
 
   def self.run!(filenames, values, mixin: nil, cwd: nil)
@@ -79,6 +85,10 @@ class KubeManifest::CLI
 
       opts.on('-f VALUE_FILE', '--values VALUE_FILE', String, 'Set values from a YAML file') do |v|
         @options[:values_file] = v
+      end
+
+      opts.on('-m METHODS_FILE', '--methods METHODS_FILE', String, 'Import methods from a given file') do |v|
+        @options[:method_file] = v
       end
     end
 
