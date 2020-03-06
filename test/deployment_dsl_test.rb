@@ -39,7 +39,7 @@ class DeploymentDslTest < TestBase
             volumes name: 'rails-config-public', configMap: {name: 'webapp-config-files'}
             volumes name: 'rails-config-secret', secret: {secretName: 'webapp-config-files'}
             volumes name: 'rails-config-actual', emptyDir: '{}'
-            volumes name: 'log', emptyDir: '{}'
+            volumes name: 'log', emptyDir: {}
 
             initContainers name: 'config-processor', image: 'yq:2.4.0' do
               volumeMounts name: 'rails-config-public', mountPath: '/var/config/public'
@@ -153,6 +153,7 @@ class DeploymentDslTest < TestBase
     assert_equal 'webapp-config-files', volumes.dig(1, :secret, :secretName)
     assert_equal 'rails-config-actual', volumes.dig(2, :name)
     assert_equal '{}', volumes.dig(2, :emptyDir)
+    assert_equal ({}), volumes.dig(3, :emptyDir)
   end
 
   def test_container

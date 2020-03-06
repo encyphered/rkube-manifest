@@ -133,7 +133,9 @@ class KubeManifest::Spec
       if value.is_a?(Array)
         value = value.reject { |v| v.respond_to?(:empty?) && v.empty? || v.nil? }
       end
-      next if value.respond_to?(:empty?) && value.empty?
+      if value.respond_to?(:empty?) && value.empty?
+        next unless key == :emptyDir && obj.is_a?(::KubeManifest::Spec::Volume) # Preserve emptyDir: {}
+      end
 
       k = stringify_keys ? key.to_s : key
 
