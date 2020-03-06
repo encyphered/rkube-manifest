@@ -19,4 +19,15 @@ class RunnerTest < TestBase
     assert_equal 'tmp', manifest.dig(:spec, :volumes, 0, :name)
     assert_equal 'log', manifest.dig(:spec, :volumes, 1, :name)
   end
+
+  def test_cli_mixin
+    filename = File.join(__dir__, '../example/pod_user_defined_function.rb')
+    mixin = File.join(__dir__, '../example/functions.rb')
+
+    runner = KubeManifest::Runner.new File.read filename
+    KubeManifest::Runner.load_mixin! mixin
+    manifest = runner.ctx.as_hash
+
+    assert_equal 'alpine:latest', manifest.dig(:spec, :containers, 0, :image)
+  end
 end

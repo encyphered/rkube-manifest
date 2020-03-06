@@ -25,13 +25,17 @@ class KubeManifest::CLI
   end
 
   def self.run(filenames, values, mixin: nil, cwd: nil)
-    load_mixin!(mixin)
+    KubeManifest::Runner.load_mixin!(mixin)
 
     collected = filenames.inject([]) do |result, filename|
       if filename == '-'
         result << filename
       else
-        filename = regularize(filename)
+        filename = if Pathname.new(filename).absolute?
+                     filename
+                   else
+                     Pathname.new(File.join(Dir.pwd, filename)).expand_path.to_s
+                   end
         if File.directory? filename
           result << Dir["#{filename}/*.rb"]
         elsif File.exists? filename
@@ -122,26 +126,6 @@ class KubeManifest::CLI
     @values = self.class.symbolize_keys(values)
   end
 
-  def self.load_mixin!(mixin)
-    if mixin.is_a? Module
-      return KubeManifest::Spec.include(mixin)
-    end
-
-    return unless mixin.is_a?(String)
-
-    mixin = regularize(mixin)
-    return unless File.exists? mixin
-
-    methods = File.open(mixin).read
-
-    mod = Module.new do
-      private
-
-      eval(methods)
-    end
-    KubeManifest::Spec.include(mod)
-  end
-
   def self.symbolize_keys(hash)
     result = {}
     hash.each_pair do |key, value|
@@ -167,13 +151,5 @@ class KubeManifest::CLI
       end
     end
     result
-  end
-
-  def self.regularize(filename)
-    if Pathname.new(filename).absolute?
-      filename
-    else
-      Pathname.new(File.join(Dir.pwd, filename)).expand_path.to_s
-    end
   end
 end
