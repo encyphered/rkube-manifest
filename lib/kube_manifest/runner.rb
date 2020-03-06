@@ -1,4 +1,6 @@
 class KubeManifest::Runner
+  @@MODULE_CACHE = {}
+
   def initialize(code, values: {}, cwd: [])
     @code, @values, @cwd = code, values, cwd
   end
@@ -40,13 +42,25 @@ class KubeManifest::Runner
                end
     return unless File.exists? filename
 
-    methods = File.open(filename).read
-
-    mod = Module.new do
-      private
-
-      eval(methods)
+    mod = @@MODULE_CACHE[filename] || Module.new do
+      eval(File.open(filename).read)
     end
+
+    @@MODULE_CACHE[filename] = mod
+
     KubeManifest::Spec.include(mod)
+  end
+
+  def self.unload_mixin!(mixin)
+    filename = if Pathname.new(mixin).absolute?
+                 mixin
+               else
+                 Pathname.new(File.join(Dir.pwd, mixin)).expand_path.to_s
+               end
+
+    return unless @@MODULE_CACHE.include? filename
+    @@MODULE_CACHE[filename].instance_methods.each do |m|
+      KubeManifest::Spec.undef_method(m)
+    end
   end
 end

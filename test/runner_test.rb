@@ -29,5 +29,6 @@ class RunnerTest < TestBase
     manifest = runner.ctx.as_hash
 
     assert_equal 'alpine:latest', manifest.dig(:spec, :containers, 0, :image)
+    KubeManifest::Runner.unload_mixin! mixin
   end
 end
