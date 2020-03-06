@@ -44,22 +44,17 @@ class KubeManifest::CLI
 
     collected.inject([]) do |result, filename|
       if filename == '-'
-        manifest = self.ctx(STDIN.read)
-        manifest.values = values
-        result << manifest
+        ctx = KubeManifest::Runner.new(STDIN.read, values: values).ctx
+        result << ctx
       else
         file = File.open(filename)
-        manifest = self.ctx(file.read)
-        if manifest.is_a? Array
-          manifest.each do |m|
-            m.values = values
-            m.cwd = [cwd, File.dirname(filename)]
+        ctx = KubeManifest::Runner.new(file.read, values: values, cwd: [cwd, File.dirname(filename)]).ctx
+        if ctx.is_a? Array
+          ctx.each do |m|
             result << m
           end
-        elsif manifest
-          manifest.values = values
-          manifest.cwd = [cwd, File.dirname(filename)]
-          result << manifest
+        elsif ctx
+          result << ctx
         end
       end
 
@@ -125,10 +120,6 @@ class KubeManifest::CLI
 
     values.merge!(opt_values)
     @values = self.class.symbolize_keys(values)
-  end
-
-  def self.ctx(definition)
-    KubeManifest::Runner.new(definition).ctx
   end
 
   def self.load_mixin!(mixin)

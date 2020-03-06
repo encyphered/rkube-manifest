@@ -1,10 +1,21 @@
 class KubeManifest::Runner
-  def initialize(code)
-    @code = code
+  def initialize(code, values: {}, cwd: [])
+    @code, @values, @cwd = code, values, cwd
   end
 
   def ctx
-    instance_eval(@code)
+    result = instance_eval(@code)
+    if result.is_a? Array
+      return result.map do |c|
+        c.cwd = @cwd
+        c.values = @values
+        c
+      end
+    end
+
+    result.cwd = @cwd
+    result.values = @values
+    result
   end
 
   def method_missing(name, *args, **kwargs, &block)

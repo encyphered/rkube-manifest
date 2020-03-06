@@ -41,9 +41,7 @@ module KubeManifest::SpecUtils
       end
 
       def manifest(value)
-        ctx = ::KubeManifest::Runner.new(file(value)).ctx
-        ctx.values = self._values
-        ctx.cwd = self._ctx.cwd
+        ctx = ::KubeManifest::Runner.new(file(value), values: self._values, cwd: self._ctx.cwd).ctx
         ctx.as_yaml
       end
 
