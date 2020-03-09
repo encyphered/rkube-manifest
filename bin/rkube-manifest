@@ -5,5 +5,6 @@ require 'yaml'
 
 require_relative '../lib/kube_manifest'
 
-cli = KubeManifest::CLI.new.prepare
+cli = KubeManifest::CLI::Exec.new
+cli.parse_options!
 cli.run!
