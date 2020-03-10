@@ -1,6 +1,7 @@
 require 'optparse'
 require 'pathname'
 require 'yaml'
+require 'pp'
 
 module KubeManifest::CLI
 end
@@ -86,25 +87,47 @@ class KubeManifest::CLI::Exec
 
   def parse_options!
     parser = OptionParser.new do |opts|
-      opts.banner = "Usage: rkube-manifest [options]"
+      opts.banner = "Usage: rkube-manifest template [options] filename"
 
       opts.on('--set KEY=VALUE', String, 'Set values') do |v|
         @options[:values] ||= []
         @options[:values] << v
       end
 
-      opts.on('-f VALUE_FILE', '--values VALUE_FILE', String, 'Set values from a YAML file') do |v|
+      opts.on('-f VALUE_FILE', '--values VALUE_FILE', String, 'Read values from a YAML file and override') do |v|
         @options[:values_file] = v
+      end
+
+      opts.on('-v', '--[no-]verbose', 'Run verbosely. The log would be be write into stderr') do |v|
+        @options[:verbose] = v
       end
 
       opts.on('-m METHODS_FILE', '--methods METHODS_FILE', String, 'Import methods from a given file') do |v|
         @options[:method_file] = v
       end
+
+      opts.on("-h", "--help", "Prints this help") do
+        puts opts
+        exit
+      end
     end
 
     parser.parse!
 
+    command = ARGV.shift
+    if command != 'template'
+      STDERR.write "Error: unknown command: #{command}\n"
+      STDERR.write parser.banner
+      STDERR.write "\n"
+      exit 1
+    end
     @filenames = ARGV || []
+    if @filenames.empty?
+      STDERR.write "Error: File or directory not given\n"
+      STDERR.write parser.banner
+      STDERR.write "\n"
+      exit 1
+    end
   end
 
   def run
@@ -115,15 +138,23 @@ class KubeManifest::CLI::Exec
               nil
             end
 
-    self.class.run(@filenames, @values, cwd: @cwd, mixin: mixin)
+    if @options[:verbose]
+      STDERR.write "# Processing manifests within #{@cwd} with values:\n"
+      STDERR.write "#{@values.pretty_inspect.gsub(/^/, '#  ')}"
+      STDERR.flush
+    end
+    self.class.run(@filenames, @values, cwd: @cwd, mixin: mixin, verbose: @options[:verbose])
   end
 
   def run!
     manifests = run
     STDOUT.write manifests.map{|m|m.as_yaml}.join("\n")
+  rescue
+    STDERR.write "Error: #{$!.message}\n"
+    exit 2
   end
 
-  def self.run(filenames, values, mixin: nil, cwd: nil)
+  def self.run(filenames, values, mixin: nil, cwd: nil, verbose: false)
     KubeManifest::Runner.load_mixin!(mixin)
 
     collected = filenames.inject([]) do |result, filename|
@@ -151,6 +182,7 @@ class KubeManifest::CLI::Exec
         result << ctx
       else
         file = File.open(filename)
+        STDERR.write "# Processing #{filename}\n" if verbose
         ctx = KubeManifest::Runner.new(file.read, values: values, cwd: [cwd, File.dirname(filename)]).ctx
         if ctx.is_a? Array
           ctx.each do |m|
@@ -179,14 +211,24 @@ class KubeManifest::CLI::Exec
     %w(values.yml values.yaml).each do |f|
       filename = File.join(@cwd, f)
       if File.exists? filename
-        values = YAML.load(File.open(filename).read) rescue {}
+        begin
+          values = YAML.load(File.open(filename).read)
+          STDERR.write "# Reading values from #{filename}\n" if @options[:verbose]
+        rescue
+          values = {}
+        end
       end
     end
 
     if @options[:values_file]
       file = File.open(@options[:values_file])
       @cwd = expand_dir(file) || Dir.pwd
-      yaml_values = YAML.load(file.read) rescue {}
+      begin
+        yaml_values = YAML.load(file.read)
+        STDERR.write "# Reading values from #{Pathname.new(file).expand_path.to_s}\n" if @options[:verbose]
+      rescue
+        yaml_values = {}
+      end
       values = merge_hash_recursive(values, yaml_values)
     end
 

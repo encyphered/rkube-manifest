@@ -30,7 +30,7 @@ Usage
 Command-line tool
 -----------------
 
-    $ rkube-manifest [--set KEY=value] [--values VALUE_FILE] [--methods METHODS_FILE] FILENAME
+    $ rkube-manifest template [--set KEY=value] [--values VALUE_FILE] [--methods METHODS_FILE] FILENAME
 
 If filename is `-`, it reads DSL from standard input.
 Or, if filename is a directory, it reads all ruby files in the given directory.
