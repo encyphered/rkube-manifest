@@ -20,6 +20,10 @@ class KubeManifest::Runner
     result
   end
 
+  def _values
+    @values
+  end
+
   def method_missing(name, *args, **kwargs, &block)
     klass_name = name.to_s
                  .sub(/^[a-z\d]*/) { |match| match.capitalize }
