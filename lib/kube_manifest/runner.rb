@@ -8,16 +8,18 @@ class KubeManifest::Runner
   def ctx
     result = instance_eval(@code)
     if result.is_a? Array
-      return result.map do |c|
+      result.select{ |c| c }.map do |c|
         c.cwd = @cwd
         c.values = @values
         c
       end
+    elsif result.nil?
+      nil
+    else
+      result.cwd = @cwd
+      result.values = @values
+      result
     end
-
-    result.cwd = @cwd
-    result.values = @values
-    result
   end
 
   def _values
