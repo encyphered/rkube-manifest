@@ -40,19 +40,22 @@ class KubeManifest::Runner
     end
 
     return unless mixin.is_a?(String)
+    return unless File.exists? mixin
 
-    filename = if Pathname.new(mixin).absolute?
-                 mixin
-               else
-                 Pathname.new(File.join(Dir.pwd, mixin)).expand_path.to_s
-               end
-    return unless File.exists? filename
+    mod = @@MODULE_CACHE[mixin] || Module.new do
+      eval(File.open(mixin).read)
 
-    mod = @@MODULE_CACHE[filename] || Module.new do
-      eval(File.open(filename).read)
+      # TODO merge with above
+      def method_missing(name, *args, **kwargs, &block)
+        klass_name = name.to_s
+                         .sub(/^[a-z\d]*/) { |match| match.capitalize }
+                         .gsub(/(?:_|(\/))([a-z\d]*)/) { "#{$1}#{$2.capitalize}" }.gsub("/", "::")
+        klass = ::KubeManifest::Spec.const_get(klass_name)
+        ::KubeManifest::Context.new(klass, **kwargs, &block)
+      end
     end
 
-    @@MODULE_CACHE[filename] = mod
+    @@MODULE_CACHE[mixin] = mod
 
     KubeManifest::Spec.include(mod)
   end

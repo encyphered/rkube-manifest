@@ -155,6 +155,18 @@ class KubeManifest::CLI::Exec
   end
 
   def self.run(filenames, values, mixin: nil, cwd: nil, verbose: false)
+    if mixin.is_a? String
+      mixin = if Pathname.new(mixin).absolute?
+                mixin
+              else
+                Pathname.new(File.join(Dir.pwd, mixin)).expand_path.to_s
+              end
+    end
+
+    if verbose
+      STDERR.write "# Loading #{mixin}\n"
+      STDERR.flush
+    end
     KubeManifest::Runner.load_mixin!(mixin)
 
     collected = filenames.inject([]) do |result, filename|
@@ -174,7 +186,11 @@ class KubeManifest::CLI::Exec
       end
 
       result
-    end.flatten.uniq
+    end.flatten.uniq.reject{ |f| f == mixin }
+    if verbose
+      STDERR.write "# Collected #{collected.join(',')}\n"
+      STDERR.flush
+    end
 
     collected.inject([]) do |result, filename|
       if filename == '-'
