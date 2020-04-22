@@ -7,6 +7,6 @@ Gem::Specification.new do |spec|
   spec.licenses = ['MIT']
   spec.summary = 'Simple DSL for describe Kubernetes manifest'
   spec.files = Dir['lib/**/*'].append('bin/rkube-manifest').flatten
-  spec.required_ruby_version = '>= 2.3.0'
+  spec.required_ruby_version = '>= 2.5.0'
   spec.executables = ['rkube-manifest']
 end
