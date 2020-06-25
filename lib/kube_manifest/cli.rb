@@ -12,6 +12,8 @@ module KubeManifest::CLI::Utils
     hash.each_pair do |key, value|
       v = if value.is_a? Hash
             symbolize_keys(value)
+          elsif value.is_a? Array
+            value.map { |v| symbolize_keys(v) }
           else
             value
           end

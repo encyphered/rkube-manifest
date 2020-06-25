@@ -4,8 +4,8 @@ class CliTest < TestBase
   include KubeManifest::CLI::Utils
 
   def test_symbolize_keys
-    result = symbolize_keys({'a' => 1, 'b' => {'c' => 2}})
-    expect = {:a => 1, :b => {:c => 2}}
+    result = symbolize_keys({'a' => 1, 'b' => {'c' => 2}, 'd' => [{'e' => 3}]})
+    expect = {:a => 1, :b => {:c => 2}, :d => [{:e => 3}]}
     assert_equal expect, result
   end
 
