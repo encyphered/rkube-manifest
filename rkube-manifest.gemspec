@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name = 'rkube-manifest'
-  spec.version = '0.0.2'
+  spec.version = '0.0.3'
   spec.author = 'Geunwoo Shin'
   spec.email = 'encyphered@gmail.com'
   spec.homepage = 'https://github.com/encyphered/rkube-manifest'
