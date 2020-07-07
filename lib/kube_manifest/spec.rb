@@ -37,7 +37,7 @@ module KubeManifest::SpecUtils
       end
 
       def b64encode(value)
-        Base64.urlsafe_encode64(value)
+        Base64.urlsafe_encode64(value || '')
       end
 
       def manifest(value)
@@ -46,11 +46,11 @@ module KubeManifest::SpecUtils
       end
 
       def sha256(value)
-        Digest::SHA2.new(256).hexdigest(value)
+        Digest::SHA2.new(256).hexdigest(value || '')
       end
 
       def md5(value)
-        Digest::MD5.hexdigest(value)
+        Digest::MD5.hexdigest(value || '')
       end
     end
   end
